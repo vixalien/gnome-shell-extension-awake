@@ -2,7 +2,7 @@
 <schemalist>
   <schema id="org.gnome.shell.extensions.awake" path="/org/gnome/shell/extensions/awake/">
     <key name="enabled" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Is awake inhibitting right now?</summary>
       <description>Whether the extension is inhibitting sleep right now</description>
     </key>
