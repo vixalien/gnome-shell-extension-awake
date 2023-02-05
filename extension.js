@@ -74,7 +74,7 @@ const AwakeToggle = GObject.registerClass(
 
     _init() {
       super._init({
-        label: "Awake",
+        label: "Keep Awake",
         gicon: this.adequate_icon(),
         toggleMode: true,
       });

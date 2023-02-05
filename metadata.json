@@ -1,6 +1,6 @@
 {
-  "name": "Awake",
-  "description": "Keep GNOME session awake when you're doing a task and doesn't want your device to auto suspend/sleep",
+  "name": "Keep Awake",
+  "description": "Disable the screensaver & auto suspend",
   "uuid": "awake@vixalien.com",
   "shell-version": [
     "43"
