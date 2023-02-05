@@ -1,0 +1,8 @@
+{
+  "name": "Awake",
+  "description": "Keep GNOME session awake when you're doing a task and doesn't want your device to auto suspend/sleep",
+  "uuid": "awake@vixalien.com",
+  "shell-version": [
+    "43"
+  ]
+}
