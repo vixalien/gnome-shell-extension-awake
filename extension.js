@@ -19,10 +19,11 @@
 /* exported init */
 
 const { Gio, GObject } = imports.gi;
-
+const { SystemIndicator, QuickToggle } = imports.ui.quickSettings;
 const ExtensionUtils = imports.misc.extensionUtils;
-const QuickSettings = imports.ui.quickSettings;
 const QuickSettingsMenu = imports.ui.main.panel.statusArea.quickSettings;
+
+const Me = ExtensionUtils.getCurrentExtension();
 
 // for some reason the method Inhibit isn't in the schema so we can't just load the xml
 const DBusSessionManagerIface = `<node>
@@ -54,33 +55,47 @@ const DBusSessionManagerIface = `<node>
   </interface>
 </node>`;
 
+const DisabledIcon = 'my-caffeine-off-symbolic';
+const EnabledIcon = 'my-caffeine-on-symbolic';
+
 const DBusSessionManagerProxy = Gio.DBusProxy.makeProxyWrapper(DBusSessionManagerIface);
 
 const settings = new ExtensionUtils.getSettings('org.gnome.shell.extensions.awake');
 
 const AwakeToggle = GObject.registerClass(
-  class AwakeToggle extends QuickSettings.QuickToggle {
+  class AwakeToggle extends QuickToggle {
+    constructor() {
+      super();
+    }
+
+    adequate_icon() {
+      return Gio.icon_new_for_string(`${Me.path}/icons/${settings.get_boolean('enabled') ? EnabledIcon : DisabledIcon}.svg`)
+    }
+
     _init() {
       super._init({
         label: "Awake",
-        iconName: 'face-yawn-symbolic',
+        gicon: this.adequate_icon(),
         toggleMode: true,
       });
 
       // Binding the toggle to a GSettings key
       settings.bind('enabled', this, 'checked', Gio.SettingsBindFlags.DEFAULT);
+      settings.connect('changed::enabled', () => {
+        this.gicon = this.adequate_icon();
+      });
     }
   }
 )
 
 const AwakeIndicator = GObject.registerClass(
-  class AwakeIndicator extends QuickSettings.SystemIndicator {
+  class AwakeIndicator extends SystemIndicator {
     _init() {
       super._init();
 
       // Create the icon for the indicator
       this._indicator = this._addIndicator();
-      this._indicator.icon_name = 'face-yawn-symbolic';
+      this._indicator.gicon = Gio.icon_new_for_string(`${Me.path}/icons/${EnabledIcon}.svg`);;
 
       // Showing the indicator when the feature is enabled
       settings.bind('enabled', this._indicator, 'visible', Gio.SettingsBindFlags.DEFAULT);
@@ -104,8 +119,6 @@ class Extension {
   constructor() {
     this._indicator = null;
   }
-
-
 
   enable() {
     this._indicator = new AwakeIndicator();
