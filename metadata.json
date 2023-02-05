@@ -4,6 +4,5 @@
   "uuid": "awake@vixalien.com",
   "shell-version": [
     "43"
-  ],
-  "session-modes": ["user", "unlock-dialog"]
+  ]
 }
