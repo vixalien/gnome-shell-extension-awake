@@ -60,19 +60,15 @@ const EnabledIcon = 'my-caffeine-on-symbolic';
 
 const DBusSessionManagerProxy = Gio.DBusProxy.makeProxyWrapper(DBusSessionManagerIface);
 
-const settings = new ExtensionUtils.getSettings('org.gnome.shell.extensions.awake');
-
 const AwakeToggle = GObject.registerClass(
   class AwakeToggle extends QuickToggle {
-    constructor() {
-      super();
-    }
-
     adequate_icon() {
-      return Gio.icon_new_for_string(`${Me.path}/icons/${settings.get_boolean('enabled') ? EnabledIcon : DisabledIcon}.svg`)
+      return Gio.icon_new_for_string(`${Me.path}/icons/${this.settings.get_boolean('enabled') ? EnabledIcon : DisabledIcon}.svg`)
     }
 
     _init() {
+      this.settings = new ExtensionUtils.getSettings('org.gnome.shell.extensions.awake');
+
       super._init({
         label: "Keep Awake",
         gicon: this.adequate_icon(),
@@ -80,8 +76,9 @@ const AwakeToggle = GObject.registerClass(
       });
 
       // Binding the toggle to a GSettings key
-      settings.bind('enabled', this, 'checked', Gio.SettingsBindFlags.DEFAULT);
-      settings.connect('changed::enabled', () => {
+
+      this.settings.bind('enabled', this, 'checked', Gio.SettingsBindFlags.DEFAULT);
+      this.settings.connect('changed::enabled', () => {
         this.gicon = this.adequate_icon();
       });
     }
@@ -98,7 +95,9 @@ const AwakeIndicator = GObject.registerClass(
       this._indicator.gicon = Gio.icon_new_for_string(`${Me.path}/icons/${EnabledIcon}.svg`);;
 
       // Showing the indicator when the feature is enabled
-      settings.bind('enabled', this._indicator, 'visible', Gio.SettingsBindFlags.DEFAULT);
+      this.settings = new ExtensionUtils.getSettings('org.gnome.shell.extensions.awake');
+
+      this.settings.bind('enabled', this._indicator, 'visible', Gio.SettingsBindFlags.DEFAULT);
 
       // Create the toggle and associate it with the indicator, being sure to
       // destroy it along with the indicator
@@ -121,11 +120,13 @@ class Extension {
   }
 
   enable() {
+    this.settings = new ExtensionUtils.getSettings('org.gnome.shell.extensions.awake');
+
     this._indicator = new AwakeIndicator();
     this.sessionManager = new DBusSessionManagerProxy(Gio.DBus.session, 'org.gnome.SessionManager', '/org/gnome/SessionManager');
 
-    settings.connect('changed::enabled', () => {
-      if (settings.get_boolean('enabled')) {
+    this.settings.connect('changed::enabled', () => {
+      if (this.settings.get_boolean('enabled')) {
         this.inhibit();
       } else {
         this.uninhibit();
@@ -136,6 +137,8 @@ class Extension {
   disable() {
     this._indicator.destroy();
     this._indicator = null;
+    this.sessionManager = null;
+    this.settings = null;
     this.uninhibit();
   }
 
